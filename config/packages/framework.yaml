@@ -18,6 +18,13 @@ framework:
     php_errors:
         log: true
 
+    http_client:
+        scoped_clients:
+            futbin.http.client:
+                base_uri: '%env(FUTBIN_API_SERVER)%'
+                verify_peer: false
+                verify_host: false
+
 when@test:
     framework:
         test: true
