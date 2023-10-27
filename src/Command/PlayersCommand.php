@@ -21,11 +21,9 @@ class PlayersCommand extends Command
 {
     public function __construct(
         private HttpClientInterface $futbinHttpClient,
-        private EntityManagerInterface $entityManager
-    )
-    {
+        private EntityManagerInterface $entityManager,
+    ) {
         parent::__construct();
-
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -33,12 +31,11 @@ class PlayersCommand extends Command
         $pages = $this->getPages();
         $result = [];
 
-        for ($page = 1; $page <= $pages; $page++) {
+        for ($page = 1; $page <= $pages; ++$page) {
             $request = $this->playersRequest($page);
             $crawler = new Crawler($request->getContent());
 
-            $selector = "table > tbody > tr";
-
+            $selector = 'table > tbody > tr';
 
             $crawler->filter($selector)->each(function (Crawler $node) use (&$result) {
                 if (!is_null($node->attr('data-url'))) {
@@ -51,8 +48,8 @@ class PlayersCommand extends Command
 
                     $player
                         ->setName($name)
-                        ->setCardId((int)$cardId)
-                        ->setBaseId((int)$baseId);
+                        ->setCardId((int) $cardId)
+                        ->setBaseId((int) $baseId);
 
                     $this->entityManager->persist($player);
                 }
@@ -60,7 +57,6 @@ class PlayersCommand extends Command
         }
 
         $this->entityManager->flush();
-
 
         return Command::SUCCESS;
     }
@@ -71,24 +67,24 @@ class PlayersCommand extends Command
         $request = $this->playersRequest();
 
         $crawler = new Crawler($request->getContent());
-        $selector = "ul.pagination > li";
+        $selector = 'ul.pagination > li';
 
         $crawler->filter($selector)->each(function (Crawler $node) use (&$maxPage) {
-            $page = (int)$node->filter('.page-item')->text();
-            if ($page > $maxPage)
+            $page = (int) $node->filter('.page-item')->text();
+            if ($page > $maxPage) {
                 $maxPage = $page;
+            }
         });
 
         return $maxPage;
     }
-
 
     public function playersRequest(int $page = 1): ResponseInterface
     {
         return $this->futbinHttpClient->request('GET', 'players', ['query' => [
             'version' => 'gold',
             'ps_price' => '5000-15000000',
-            'page' => $page
+            'page' => $page,
         ]]);
     }
 }
