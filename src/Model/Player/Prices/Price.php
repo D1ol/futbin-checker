@@ -8,6 +8,8 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 
 class Price
 {
+    private const DEFAULT_UPDATE_INTERVAL = 'PT5M';
+
     #[SerializedName('LCPrice')]
     private string $firstPrice;
 
@@ -22,6 +24,9 @@ class Price
 
     #[SerializedName('LCPrice5')]
     private string $fifthPrice;
+
+    #[SerializedName('updated')]
+    private string $lastUpdate;
 
     public function getFirstPrice(): string
     {
@@ -86,5 +91,33 @@ class Price
         $this->fifthPrice = $fifthPrice;
 
         return $this;
+    }
+
+    public function getLastUpdate(): string
+    {
+        return $this->lastUpdate;
+    }
+
+    public function setLastUpdate(string $lastUpdate): Price
+    {
+        $this->lastUpdate = $lastUpdate;
+
+        return $this;
+    }
+
+    /**
+     * Last updated date + 5min like default time when card was updated.
+     */
+    public function getNextCheckDate(\DateInterval $interval = null): \DateTimeImmutable
+    {
+        $interval ??= new \DateInterval(self::DEFAULT_UPDATE_INTERVAL);
+
+        try {
+            $dateStamp = new \DateTimeImmutable($this->lastUpdate);
+
+            return $dateStamp->add($interval);
+        } catch (\Throwable $e) {
+            return new \DateTimeImmutable();
+        }
     }
 }

@@ -19,7 +19,6 @@ use Symfony\Component\Messenger\MessageBusInterface;
 )]
 class SingleCheckPlayersCommand extends Command
 {
-
     public function __construct(
         private PlayerRepository $playerRepository,
         private MessageBusInterface $messageBus,

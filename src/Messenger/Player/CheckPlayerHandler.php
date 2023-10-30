@@ -14,11 +14,13 @@ use App\Model\Player\Sales\Sale;
 use App\Repository\Player\PlayerRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\DelayStamp;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-#[AsMessageHandler(fromTransport: 'async')]
+#[AsMessageHandler]
 class CheckPlayerHandler
 {
     public function __construct(
@@ -26,6 +28,7 @@ class CheckPlayerHandler
         private HttpClientInterface $futbinHttpClient,
         private SerializerInterface $serializer,
         private PlayerRepository $playerRepository,
+        private MessageBusInterface $messageBus,
     ) {
     }
 
@@ -41,6 +44,7 @@ class CheckPlayerHandler
         $baseCardSales = new BaseCardSales($response);
 
         $firstPrice = $baseCardPrices->getMainCard()->getPrices()->getPs()->getFirstPriceFloat();
+
         $playerProfitCalculator = new PlayerProfitCalculator($firstPrice, $baseCardSales->getAverage());
 
         if ($playerProfitCalculator->isDiscount()) {
@@ -49,6 +53,10 @@ class CheckPlayerHandler
 
         $string = sprintf('baseId: %s', $checkPlayer->getBaseId());
         $this->logger->alert($string);
+        $this->logger->alert(sprintf('exec time %s:', (new \DateTimeImmutable('now'))->format('H:i:s')));
+
+        $nextCheckDate = $baseCardPrices->getMainCard()->getPrices()->getPs()->getNextCheckDate();
+        $this->messageBus->dispatch(new CheckPlayerMessage($checkPlayer->getBaseId()), [DelayStamp::delayUntil($nextCheckDate)]);
 
         return new HandlerResult($string.' added to queue');
     }
