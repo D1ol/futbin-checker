@@ -108,10 +108,8 @@ class Price
     /**
      * Last updated date + 5min like default time when card was updated.
      */
-    public function getNextCheckDate(\DateInterval $interval = null): \DateTimeImmutable
+    public function getNextCheckDate(\DateInterval $interval = new \DateInterval(self::DEFAULT_UPDATE_INTERVAL)): \DateTimeImmutable
     {
-        $interval ??= new \DateInterval(self::DEFAULT_UPDATE_INTERVAL);
-
         try {
             $dateStamp = new \DateTimeImmutable($this->lastUpdate);
 
