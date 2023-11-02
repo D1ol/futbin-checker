@@ -7,8 +7,9 @@ namespace App\Messenger\Player;
 class CheckPlayerMessage
 {
     public function __construct(
-        private int $baseId,
-    ) {
+        private int $baseId
+    )
+    {
     }
 
     public function getBaseId(): int

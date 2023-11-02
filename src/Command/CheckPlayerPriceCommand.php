@@ -18,9 +18,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class CheckPlayerPriceCommand extends Command
 {
     public function __construct(
-        private PlayerRepository $playerRepository,
+        private PlayerRepository    $playerRepository,
         private MessageBusInterface $messageBus,
-    ) {
+    )
+    {
         parent::__construct();
     }
 

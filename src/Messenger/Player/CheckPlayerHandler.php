@@ -7,15 +7,17 @@ namespace App\Messenger\Player;
 use App\Calculator\PlayerProfitCalculator;
 use App\Core\Messenger\HandlerResult;
 use App\Core\Serializer\Denormalizer\SalesDenormalizer;
+use App\Entity\Proxy\Proxy;
 use App\Model\Player\BaseCardPrices;
 use App\Model\Player\BaseCardSales;
 use App\Model\Player\ReferencedCard;
 use App\Model\Player\Sales\Sale;
 use App\Repository\Player\PlayerRepository;
+use App\Repository\Proxy\ProxyRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Messenger\Stamp\DelayStamp;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -24,23 +26,30 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class CheckPlayerHandler
 {
     public function __construct(
-        private LoggerInterface $logger,
-        private HttpClientInterface $futbinHttpClient,
-        private SerializerInterface $serializer,
-        private PlayerRepository $playerRepository,
-        private MessageBusInterface $messageBus,
-    ) {
+        private readonly LoggerInterface        $logger,
+        private readonly HttpClientInterface    $futbinHttpClient,
+        private readonly SerializerInterface    $serializer,
+        private readonly PlayerRepository       $playerRepository,
+        private readonly MessageBusInterface    $messageBus,
+        private readonly ProxyRepository        $proxyRepository,
+        private readonly EntityManagerInterface $entityManager
+    )
+    {
     }
 
     public function __invoke(CheckPlayerMessage $checkPlayer): HandlerResult
     {
-        $player = $this->playerRepository->findOneBy(['baseId' => $checkPlayer->getBaseId()]);
-        $playerPricesRequest = $this->getPlayerPrices($checkPlayer->getBaseId());
 
-        $response = $this->serializer->deserialize($playerPricesRequest, ReferencedCard::class.'[]', JsonEncoder::FORMAT);
+        $proxy = $this->proxyRepository->findOneBy(['ip' => '199.58.185.9:4145']);
+        // proxy
+
+        $player = $this->playerRepository->findOneBy(['baseId' => $checkPlayer->getBaseId()]);
+        $playerPricesRequest = $this->getPlayerPrices($checkPlayer->getBaseId(), $proxy);
+
+        $response = $this->serializer->deserialize($playerPricesRequest, ReferencedCard::class . '[]', JsonEncoder::FORMAT);
         $baseCardPrices = new BaseCardPrices($response);
         $playerSalesRequest = $this->getPlayerSales($checkPlayer->getBaseId());
-        $response = $this->serializer->deserialize($playerSalesRequest, Sale::class.'[]', JsonEncoder::FORMAT, [SalesDenormalizer::SALES_RESPONSE => true]);
+        $response = $this->serializer->deserialize($playerSalesRequest, Sale::class . '[]', JsonEncoder::FORMAT, [SalesDenormalizer::SALES_RESPONSE => true]);
         $baseCardSales = new BaseCardSales($response);
 
         $firstPrice = $baseCardPrices->getMainCard()->getPrices()->getPs()->getFirstPriceFloat();
@@ -52,67 +61,83 @@ class CheckPlayerHandler
         }
 
         $string = sprintf('baseId: %s', $checkPlayer->getBaseId());
-        $this->logger->alert($string);
-        $this->logger->alert(sprintf('exec time %s:', (new \DateTimeImmutable('now'))->format('H:i:s')));
+//        $this->logger->alert($string);
+//        $this->logger->alert(sprintf('exec time %s:', (new \DateTimeImmutable('now'))->format('H:i:s')));
 
-        $nextCheckDate = $baseCardPrices->getMainCard()->getPrices()->getPs()->getNextCheckDate();
-        $this->messageBus->dispatch(new CheckPlayerMessage($checkPlayer->getBaseId()), [DelayStamp::delayUntil($nextCheckDate)]);
+//        $nextCheckDate = $baseCardPrices->getMainCard()->getPrices()->getPs()->getNextCheckDate();
+//        $this->messageBus->dispatch(new CheckPlayerMessage($checkPlayer->getBaseId()), [DelayStamp::delayUntil($nextCheckDate)]);
 
-        return new HandlerResult($string.' added to queue');
+        return new HandlerResult($string . ' added to queue');
     }
 
-    public function getPlayerPrices(int $baseId): string
+    public function getPlayerPrices(int $baseId, Proxy $proxy): string
     {
-        return $data = '{
-  "194765": {
-    "prices": {
-      "ps": {
-        "LCPrice": "115,000",
-        "LCPrice2": "122,000",
-        "LCPrice3": "122,000",
-        "LCPrice4": "122,000",
-        "LCPrice5": "122,000",
-        "updated": "2 mins ago",
-        "MinPrice": "11,000",
-        "MaxPrice": "210,000",
-        "PRP": "55",
-        "LCPClosing": 119000
-      },
-      "pc": {
-        "LCPrice": "153,000",
-        "LCPrice2": "153,000",
-        "LCPrice3": "156,000",
-        "LCPrice4": "157,000",
-        "LCPrice5": "157,000",
-        "updated": "9 mins ago",
-        "MinPrice": "13,750",
-        "MaxPrice": "260,000",
-        "PRP": "56",
-        "LCPClosing": 157000
-      }
-    }
-  },
-  "50526413": {
-    "prices": {
-      "ps": {
-        "LCPrice": "636,000"
-      },
-      "pc": {
-        "LCPrice": "755,000"
-      }
-    }
-  },
-  "67303629": {
-    "prices": {
-      "ps": {
-        "LCPrice": "680,000"
-      },
-      "pc": {
-        "LCPrice": "790,000"
-      }
-    }
-  }
-}';
+        try {
+            $response = $this->futbinHttpClient->request('GET', 'playerPrices', [
+                'query' => [
+                    'player' => $baseId
+                ],
+                'http_version' => '2.0',
+                'proxy' => $proxy,
+            ]);
+            return $response->getContent();
+        } catch (\Throwable $e) {
+            $proxy->setDeletedAt(new \DateTimeImmutable());
+        } finally {
+            $proxy->setUsedAt(new \DateTimeImmutable());
+        }
+        $this->entityManager->flush();
+
+//        return $data = '{
+//  "194765": {
+//    "prices": {
+//      "ps": {
+//        "LCPrice": "115,000",
+//        "LCPrice2": "122,000",
+//        "LCPrice3": "122,000",
+//        "LCPrice4": "122,000",
+//        "LCPrice5": "122,000",
+//        "updated": "2 mins ago",
+//        "MinPrice": "11,000",
+//        "MaxPrice": "210,000",
+//        "PRP": "55",
+//        "LCPClosing": 119000
+//      },
+//      "pc": {
+//        "LCPrice": "153,000",
+//        "LCPrice2": "153,000",
+//        "LCPrice3": "156,000",
+//        "LCPrice4": "157,000",
+//        "LCPrice5": "157,000",
+//        "updated": "9 mins ago",
+//        "MinPrice": "13,750",
+//        "MaxPrice": "260,000",
+//        "PRP": "56",
+//        "LCPClosing": 157000
+//      }
+//    }
+//  },
+//  "50526413": {
+//    "prices": {
+//      "ps": {
+//        "LCPrice": "636,000"
+//      },
+//      "pc": {
+//        "LCPrice": "755,000"
+//      }
+//    }
+//  },
+//  "67303629": {
+//    "prices": {
+//      "ps": {
+//        "LCPrice": "680,000"
+//      },
+//      "pc": {
+//        "LCPrice": "790,000"
+//      }
+//    }
+//  }
+//}';
     }
 
     public function getPlayerSales(int $baseId): string
