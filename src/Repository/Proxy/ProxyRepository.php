@@ -4,6 +4,7 @@ namespace App\Repository\Proxy;
 
 use App\Entity\Proxy\Proxy;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,6 +20,19 @@ class ProxyRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Proxy::class);
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     */
+    public function getActiveProxy(): ?Proxy
+    {
+        $qb = $this->createQueryBuilder('p');
+        $qb
+            ->where($qb->expr()->isNull('p.usedAt'))
+            ->andWhere($qb->expr()->isNull('p.deletedAt'))
+            ->setMaxResults(1);
+        return $qb->getQuery()->getOneOrNullResult();
     }
 
 //    /**

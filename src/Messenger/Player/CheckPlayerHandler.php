@@ -15,6 +15,7 @@ use App\Model\Player\Sales\Sale;
 use App\Repository\Player\PlayerRepository;
 use App\Repository\Proxy\ProxyRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -37,10 +38,17 @@ class CheckPlayerHandler
     {
     }
 
+    /**
+     * @throws NonUniqueResultException
+     */
     public function __invoke(CheckPlayerMessage $checkPlayer): HandlerResult
     {
 
-        $proxy = $this->proxyRepository->findOneBy(['ip' => '199.58.185.9:4145']);
+        $proxy = $this->proxyRepository->getActiveProxy();
+
+        if (!$proxy) {
+            return new HandlerResult('proxies ended');
+        }
         // proxy
 
         $player = $this->playerRepository->findOneBy(['baseId' => $checkPlayer->getBaseId()]);
@@ -61,8 +69,8 @@ class CheckPlayerHandler
         }
 
         $string = sprintf('baseId: %s', $checkPlayer->getBaseId());
-//        $this->logger->alert($string);
-//        $this->logger->alert(sprintf('exec time %s:', (new \DateTimeImmutable('now'))->format('H:i:s')));
+        $this->logger->alert($string);
+        $this->logger->alert(sprintf('exec time %s:', (new \DateTimeImmutable('now'))->format('H:i:s')));
 
 //        $nextCheckDate = $baseCardPrices->getMainCard()->getPrices()->getPs()->getNextCheckDate();
 //        $this->messageBus->dispatch(new CheckPlayerMessage($checkPlayer->getBaseId()), [DelayStamp::delayUntil($nextCheckDate)]);
@@ -78,15 +86,18 @@ class CheckPlayerHandler
                     'player' => $baseId
                 ],
                 'http_version' => '2.0',
-                'proxy' => $proxy,
+                'proxy' => $proxy->getIp(),
+                "timeout" => 2
             ]);
             return $response->getContent();
         } catch (\Throwable $e) {
+            $this->logger->error(sprintf('REQUEST ERROR %s: %s', $proxy->getIp(), $e->getMessage()));
             $proxy->setDeletedAt(new \DateTimeImmutable());
         } finally {
             $proxy->setUsedAt(new \DateTimeImmutable());
+
+            $this->entityManager->flush();
         }
-        $this->entityManager->flush();
 
 //        return $data = '{
 //  "194765": {

@@ -29,7 +29,9 @@ class CheckPlayerPriceCommand extends Command
     {
         $players = $this->playerRepository->findAll();
 
-        $this->messageBus->dispatch(new CheckPlayerMessage($players[0]->getBaseId()));
+//        foreach (range(0, 100) as $index) {
+            $this->messageBus->dispatch(new CheckPlayerMessage($players[0]->getBaseId()));
+//        }
 
         return Command::SUCCESS;
     }

@@ -46,6 +46,6 @@ class CheckProxyHandler
             return false;
         }
 
-        return @fsockopen($splited[0], $splited[1], $eroare, $eroare_str, 3);
+        return @fsockopen($splited[0], $splited[1], $eroare, $eroare_str, 1);
     }
 }
