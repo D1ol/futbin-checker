@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace vendor;
 
 use App\Entity\Player\Player;
 use App\Messenger\Player\CheckPlayerMessage;

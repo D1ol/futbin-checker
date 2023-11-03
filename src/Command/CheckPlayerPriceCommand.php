@@ -18,9 +18,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class CheckPlayerPriceCommand extends Command
 {
     public function __construct(
-        private PlayerRepository $playerRepository,
+        private PlayerRepository    $playerRepository,
         private MessageBusInterface $messageBus,
-    ) {
+    )
+    {
         parent::__construct();
     }
 
@@ -28,7 +29,9 @@ class CheckPlayerPriceCommand extends Command
     {
         $players = $this->playerRepository->findAll();
 
-        $this->messageBus->dispatch(new CheckPlayerMessage($players[0]->getBaseId()));
+//        foreach (range(0, 100) as $index) {
+            $this->messageBus->dispatch(new CheckPlayerMessage($players[0]->getBaseId()));
+//        }
 
         return Command::SUCCESS;
     }

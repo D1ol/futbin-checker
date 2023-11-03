@@ -7,12 +7,16 @@ namespace App\Messenger\Player;
 use App\Calculator\PlayerProfitCalculator;
 use App\Core\Messenger\HandlerResult;
 use App\Core\Serializer\Denormalizer\SalesDenormalizer;
+use App\Entity\Proxy\Proxy;
 use App\Model\Player\BaseCardPrices;
 use App\Model\Player\BaseCardSales;
 use App\Model\Player\ReferencedCard;
 use App\Model\Player\Sales\Sale;
 use App\Notifier\Factory\ProfitMessageFactory;
 use App\Repository\Player\PlayerRepository;
+use App\Repository\Proxy\ProxyRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -32,12 +36,25 @@ class CheckPlayerHandler
         private PlayerRepository $playerRepository,
         private MessageBusInterface $messageBus,
         private MessageSenderInterface $messageSender,
-        private ProfitMessageFactory $profitMessageFactory
+        private ProfitMessageFactory $profitMessageFactory,
+        private ProxyRepository        $proxyRepository,
+        private EntityManagerInterface $entityManager
     ) {
     }
 
+    /**
+     * @throws NonUniqueResultException
+     */
     public function __invoke(CheckPlayerMessage $checkPlayer): HandlerResult
     {
+
+        $proxy = $this->proxyRepository->getActiveProxy();
+
+        if (!$proxy) {
+            return new HandlerResult('proxies ended');
+        }
+        // proxy
+
         $player = $this->playerRepository->findOneBy(['baseId' => $checkPlayer->getBaseId()]);
 
         $playerPricesRequest = $this->getPlayerPrices($checkPlayer->getBaseId());
@@ -71,62 +88,77 @@ class CheckPlayerHandler
         return new HandlerResult($string.' added to queue');
     }
 
-    public function getPlayerPrices(int $baseId): string
+    public function getPlayerPrices(int $baseId, Proxy $proxy): string
     {
-         return $this->futbinHttpClient->request('GET', 'playerPrices', ['query' => [
-            'player' => $baseId,
-        ]])->getContent();
+        try {
+            $response = $this->futbinHttpClient->request('GET', 'playerPrices', [
+                'query' => [
+                    'player' => $baseId
+                ],
+                'http_version' => '2.0',
+                'proxy' => $proxy->getIp(),
+                "timeout" => 2
+            ]);
+            return $response->getContent();
+        } catch (\Throwable $e) {
+            $this->logger->error(sprintf('REQUEST ERROR %s: %s', $proxy->getIp(), $e->getMessage()));
+            $proxy->setDeletedAt(new \DateTimeImmutable());
+        } finally {
+            $proxy->setUsedAt(new \DateTimeImmutable());
 
-        return $data = '{
-  "194765": {
-    "prices": {
-      "ps": {
-        "LCPrice": "115,000",
-        "LCPrice2": "122,000",
-        "LCPrice3": "122,000",
-        "LCPrice4": "122,000",
-        "LCPrice5": "122,000",
-        "updated": "2 mins ago",
-        "MinPrice": "11,000",
-        "MaxPrice": "210,000",
-        "PRP": "55",
-        "LCPClosing": 119000
-      },
-      "pc": {
-        "LCPrice": "153,000",
-        "LCPrice2": "153,000",
-        "LCPrice3": "156,000",
-        "LCPrice4": "157,000",
-        "LCPrice5": "157,000",
-        "updated": "9 mins ago",
-        "MinPrice": "13,750",
-        "MaxPrice": "260,000",
-        "PRP": "56",
-        "LCPClosing": 157000
-      }
-    }
-  },
-  "50526413": {
-    "prices": {
-      "ps": {
-        "LCPrice": "636,000"
-      },
-      "pc": {
-        "LCPrice": "755,000"
-      }
-    }
-  },
-  "67303629": {
-    "prices": {
-      "ps": {
-        "LCPrice": "680,000"
-      },
-      "pc": {
-        "LCPrice": "790,000"
-      }
-    }
-  }
-}';
+            $this->entityManager->flush();
+        }
+
+//        return $data = '{
+//  "194765": {
+//    "prices": {
+//      "ps": {
+//        "LCPrice": "115,000",
+//        "LCPrice2": "122,000",
+//        "LCPrice3": "122,000",
+//        "LCPrice4": "122,000",
+//        "LCPrice5": "122,000",
+//        "updated": "2 mins ago",
+//        "MinPrice": "11,000",
+//        "MaxPrice": "210,000",
+//        "PRP": "55",
+//        "LCPClosing": 119000
+//      },
+//      "pc": {
+//        "LCPrice": "153,000",
+//        "LCPrice2": "153,000",
+//        "LCPrice3": "156,000",
+//        "LCPrice4": "157,000",
+//        "LCPrice5": "157,000",
+//        "updated": "9 mins ago",
+//        "MinPrice": "13,750",
+//        "MaxPrice": "260,000",
+//        "PRP": "56",
+//        "LCPClosing": 157000
+//      }
+//    }
+//  },
+//  "50526413": {
+//    "prices": {
+//      "ps": {
+//        "LCPrice": "636,000"
+//      },
+//      "pc": {
+//        "LCPrice": "755,000"
+//      }
+//    }
+//  },
+//  "67303629": {
+//    "prices": {
+//      "ps": {
+//        "LCPrice": "680,000"
+//      },
+//      "pc": {
+//        "LCPrice": "790,000"
+//      }
+//    }
+//  }
+//}';
     }
 
     public function getPlayerSales(int $baseId): string
