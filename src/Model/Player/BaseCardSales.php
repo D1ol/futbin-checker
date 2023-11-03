@@ -26,7 +26,11 @@ class BaseCardSales
 
     public function getAverage(): float
     {
-        $prices = $this->sales->map(function (Sale $value) {
+        $filtered = $this->sales->filter(function (Sale $value) {
+            return $value->isClosed();
+        });
+
+        $prices = $filtered->map(function (Sale $value) {
             return $value->getPrice();
         });
 

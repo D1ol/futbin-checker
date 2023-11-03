@@ -1,4 +1,13 @@
 {
+    "doctrine/annotations": {
+        "version": "2.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "1.10",
+            "ref": "64d8583af5ea57b7afa4aba4b159907f3a148b05"
+        }
+    },
     "doctrine/doctrine-bundle": {
         "version": "2.10",
         "recipe": {
@@ -52,6 +61,15 @@
             "tests/bootstrap.php"
         ]
     },
+    "stof/doctrine-extensions-bundle": {
+        "version": "1.9",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "1.2",
+            "ref": "e805aba9eff5372e2d149a9ff56566769e22819d"
+        }
+    },
     "symfony/console": {
         "version": "6.3",
         "recipe": {
@@ -75,6 +93,24 @@
         "files": [
             "config/packages/debug.yaml"
         ]
+    },
+    "symfony/fake-chat-notifier": {
+        "version": "6.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "5.3",
+            "ref": "7ac8dfaa8bfb66c21ab127e4e5f31bca8df18dfb"
+        }
+    },
+    "symfony/fake-sms-notifier": {
+        "version": "6.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "5.3",
+            "ref": "b5809b9a44a5deb1b2df8654697756e8e73b7606"
+        }
     },
     "symfony/flex": {
         "version": "2.4",
@@ -213,6 +249,15 @@
             "config/packages/security.yaml"
         ]
     },
+    "symfony/telegram-notifier": {
+        "version": "6.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "5.0",
+            "ref": "6cecb59a0e96c9e1cee469f2b82fa920101a68e8"
+        }
+    },
     "symfony/translation": {
         "version": "6.3",
         "recipe": {
@@ -278,5 +323,8 @@
     },
     "twig/extra-bundle": {
         "version": "v3.7.1"
+    },
+    "x-one/notifier-bundle": {
+        "version": "v2.0.0"
     }
 }

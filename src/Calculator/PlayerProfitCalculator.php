@@ -8,8 +8,8 @@ class PlayerProfitCalculator
 {
     private const EA_TAX = 0.05;
 
-    private float $averageTax = 0;
-    private float $averageWithoutTax = 0;
+    private float $averageTax;
+    private float $averageWithoutTax;
 
     public function __construct(
         private float $currentPrice,
@@ -19,12 +19,12 @@ class PlayerProfitCalculator
         $this->averageWithoutTax = $this->average - $this->averageTax;
     }
 
-    public function getCurrentPrice()
+    public function getCurrentPrice(): float
     {
         return $this->currentPrice;
     }
 
-    public function getAverage()
+    public function getAverage(): float
     {
         return $this->average;
     }

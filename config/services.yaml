@@ -22,3 +22,10 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+
+    notifier.transport_factory.fake-chat:
+        class: XOne\Bundle\NotifierBundle\Bridge\FakeChat\FakeChatTransportFactory
+
+    notifier.transport_factory.fake-sms:
+        class: XOne\Bundle\NotifierBundle\Bridge\FakeSms\FakeSmsTransportFactory

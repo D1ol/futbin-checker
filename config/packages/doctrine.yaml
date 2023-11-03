@@ -21,6 +21,10 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
+        dql:
+            string_functions:
+                JSONB_EXISTS: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Postgresql\JsonbExists
+                CAST: DoctrineExtensions\Query\Mysql\Cast
 
 when@test:
     doctrine:

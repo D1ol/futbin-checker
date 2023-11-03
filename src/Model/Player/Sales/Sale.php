@@ -9,7 +9,7 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 class Sale
 {
     #[SerializedName('Price')]
-    private int $price;
+    private float $price;
 
     #[SerializedName('BIN')]
     private int $BIN;
@@ -17,15 +17,14 @@ class Sale
     #[SerializedName('status')]
     private string $status;
 
-    public function getPrice(): int
+    public function getPrice(): float
     {
         return $this->price;
     }
 
-    public function setPrice(int $price): Sale
+    public function setPrice(float $price): Sale
     {
         $this->price = $price;
-
         return $this;
     }
 
@@ -51,5 +50,10 @@ class Sale
         $this->status = $status;
 
         return $this;
+    }
+
+    public function isClosed(): bool
+    {
+        return 'closed' === $this->status;
     }
 }

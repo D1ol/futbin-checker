@@ -11,6 +11,7 @@ use App\Model\Player\BaseCardPrices;
 use App\Model\Player\BaseCardSales;
 use App\Model\Player\ReferencedCard;
 use App\Model\Player\Sales\Sale;
+use App\Notifier\Factory\ProfitMessageFactory;
 use App\Repository\Player\PlayerRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -19,6 +20,7 @@ use Symfony\Component\Messenger\Stamp\DelayStamp;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use XOne\Bundle\NotifierBundle\Sender\MessageSenderInterface;
 
 #[AsMessageHandler]
 class CheckPlayerHandler
@@ -29,26 +31,34 @@ class CheckPlayerHandler
         private SerializerInterface $serializer,
         private PlayerRepository $playerRepository,
         private MessageBusInterface $messageBus,
+        private MessageSenderInterface $messageSender,
+        private ProfitMessageFactory $profitMessageFactory
     ) {
     }
 
     public function __invoke(CheckPlayerMessage $checkPlayer): HandlerResult
     {
         $player = $this->playerRepository->findOneBy(['baseId' => $checkPlayer->getBaseId()]);
-        $playerPricesRequest = $this->getPlayerPrices($checkPlayer->getBaseId());
 
+        $playerPricesRequest = $this->getPlayerPrices($checkPlayer->getBaseId());
         $response = $this->serializer->deserialize($playerPricesRequest, ReferencedCard::class.'[]', JsonEncoder::FORMAT);
         $baseCardPrices = new BaseCardPrices($response);
+
         $playerSalesRequest = $this->getPlayerSales($checkPlayer->getBaseId());
         $response = $this->serializer->deserialize($playerSalesRequest, Sale::class.'[]', JsonEncoder::FORMAT, [SalesDenormalizer::SALES_RESPONSE => true]);
         $baseCardSales = new BaseCardSales($response);
 
         $firstPrice = $baseCardPrices->getMainCard()->getPrices()->getPs()->getFirstPriceFloat();
-
         $playerProfitCalculator = new PlayerProfitCalculator($firstPrice, $baseCardSales->getAverage());
 
         if ($playerProfitCalculator->isDiscount()) {
-            $this->logger->alert(sprintf('Profit on player: %s. Expected %s', $player->getName(), $playerProfitCalculator->getExpectedProfit()));
+
+            $message = $this->profitMessageFactory->createProfitMessage(
+                name: $player->getName(),
+                profit: $playerProfitCalculator->getExpectedProfit(),
+                transport: 'telegram');
+            $this->messageSender->send($message);
+
         }
 
         $string = sprintf('baseId: %s', $checkPlayer->getBaseId());
@@ -63,6 +73,10 @@ class CheckPlayerHandler
 
     public function getPlayerPrices(int $baseId): string
     {
+         return $this->futbinHttpClient->request('GET', 'playerPrices', ['query' => [
+            'player' => $baseId,
+        ]])->getContent();
+
         return $data = '{
   "194765": {
     "prices": {
@@ -117,6 +131,10 @@ class CheckPlayerHandler
 
     public function getPlayerSales(int $baseId): string
     {
+        return $this->futbinHttpClient->request('GET', 'getPlayerSales', ['query' => [
+            'resourceId' => $baseId,
+            'platform' => 'ps4'
+        ]])->getContent();
         return '[
     {
         "unix_date": 1698415937,

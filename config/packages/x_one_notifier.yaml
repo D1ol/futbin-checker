@@ -1,0 +1,8 @@
+x_one_notifier:
+  save_mailer_debug: false
+  entities:
+    message: App\Entity\Notifier\Message
+    message_attachment: App\Entity\Notifier\MessageAttachment
+    message_transaction: App\Entity\Notifier\MessageTransaction
+    message_context: App\Entity\Notifier\MessageContext
+    message_template: App\Entity\Notifier\MessageTemplate

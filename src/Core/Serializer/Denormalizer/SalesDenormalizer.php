@@ -18,7 +18,7 @@ class SalesDenormalizer implements DenormalizerInterface, DenormalizerAwareInter
         if (true === ($context[self::SALES_RESPONSE] ?? false)) {
             unset($context[self::SALES_RESPONSE]);
 
-            $data = array_slice($data, 0, 10);
+            $data = array_slice($data, 0, 15);
         }
 
         return $this->denormalizer->denormalize($data, $type, $format, $context);
