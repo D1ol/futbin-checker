@@ -57,7 +57,7 @@ class CheckPlayerHandler
 
         $player = $this->playerRepository->findOneBy(['baseId' => $checkPlayer->getBaseId()]);
 
-        $playerPricesRequest = $this->getPlayerPrices($checkPlayer->getBaseId());
+        $playerPricesRequest = $this->getPlayerPrices($checkPlayer->getBaseId(), $proxy);
         $response = $this->serializer->deserialize($playerPricesRequest, ReferencedCard::class.'[]', JsonEncoder::FORMAT);
         $baseCardPrices = new BaseCardPrices($response);
 
