@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Model\Player\Prices;
 
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 
 class Price
@@ -25,8 +26,32 @@ class Price
     #[SerializedName('LCPrice5')]
     private string $fifthPrice;
 
+    #[ORM\Column(type: 'string')]
     #[SerializedName('updated')]
     private string $lastUpdate;
+
+    /**
+     * @param string $firstPrice
+     * @param string $secondPrice
+     * @param string $thirdPrice
+     * @param string $fourthPrice
+     * @param string $fifthPrice
+     * @param string $lastUpdate
+     */
+    public function __construct(
+        int    $firstPrice,
+        array  $secondPrice,
+        string $thirdPrice,
+        string $fourthPrice, string $fifthPrice, string $lastUpdate)
+    {
+        $this->firstPrice = $firstPrice;
+        $this->secondPrice = $secondPrice;
+        $this->thirdPrice = $thirdPrice;
+        $this->fourthPrice = $fourthPrice;
+        $this->fifthPrice = $fifthPrice;
+        $this->lastUpdate = $lastUpdate;
+    }
+
 
     public function getFirstPrice(): string
     {
@@ -35,7 +60,7 @@ class Price
 
     public function getFirstPriceFloat(): float
     {
-        return (int) $this->firstPrice * 1000;
+        return (int)$this->firstPrice * 1000;
     }
 
     public function setFirstPrice(string $firstPrice): Price

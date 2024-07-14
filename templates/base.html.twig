@@ -1,16 +1,66 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}MVP Office Supplies{% endblock %}</title>
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('app') }}
+    {% endblock %}
 
-        {% block javascripts %}
-        {% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-    </body>
+    {% block javascripts %}
+        {{ encore_entry_script_tags('app') }}
+    {% endblock %}
+</head>
+<body>
+<div class="page-top">
+    <header class="header">
+        <nav class="navbar navbar-expand-lg navbar-dark justify-content-between">
+            <a class="navbar-brand" href="/">
+                <img src="{{ asset('images/mvp-logo-light.png' ) }}"
+                     width="50"
+                     height="50"
+                     alt="MVP Office Supplies Logo"
+                >
+
+                <span class="p-3">MVP Office Supplies</span>
+            </a>
+
+{#            <ul class="navbar-nav">#}
+{#                {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}#}
+{#                    <li class="nav-item">#}
+{#                        <a class="nav-link" href="{{ path('app_logout') }}">#}
+{#                            Log out#}
+{#                        </a>#}
+{#                    </li>#}
+{#                {% else %}#}
+{#                    <li class="nav-item">#}
+{#                        <a class="nav-link" href="{{ path('app_login') }}">#}
+{#                            Log in#}
+{#                        </a>#}
+{#                    </li>#}
+{#                    <li class="nav-item">#}
+{#                        <a class="nav-link" href="{{ path('app_register') }}">#}
+{#                            Register#}
+{#                        </a>#}
+{#                    </li>#}
+{#                {% endif %}#}
+{#            </ul>#}
+        </nav>
+    </header>
+
+    {% for flash in app.session.flashBag.get('success') %}
+        <div class="alert alert-success">
+            {{ flash }}
+        </div>
+    {% endfor %}
+</div>
+
+{% block body %}{% endblock %}
+
+<div
+        class="footer mb-0"
+        {{ stimulus_controller('made-with-love') }}
+>
+</div>
+</body>
 </html>

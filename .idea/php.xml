@@ -5,10 +5,17 @@
   </component>
   <component name="PHPCSFixerOptionsConfiguration">
     <option name="allowRiskyRules" value="true" />
+    <option name="codingStandard" value="Custom" />
+    <option name="rulesetPath" value="$PROJECT_DIR$/.php-cs-fixer.dist.php" />
     <option name="transferred" value="true" />
   </component>
   <component name="PHPCodeSnifferOptionsConfiguration">
     <option name="transferred" value="true" />
+  </component>
+  <component name="PhpCSFixer">
+    <phpcsfixer_settings>
+      <PhpCSFixerConfiguration tool_path="$PROJECT_DIR$/vendor/bin/php-cs-fixer" />
+    </phpcsfixer_settings>
   </component>
   <component name="PhpIncludePathManager">
     <include_path>
@@ -142,6 +149,23 @@
       <path value="$PROJECT_DIR$/vendor/symfony/panther" />
       <path value="$PROJECT_DIR$/vendor/dbrekelmans/bdi" />
       <path value="$PROJECT_DIR$/vendor/php-webdriver/webdriver" />
+      <path value="$PROJECT_DIR$/vendor/symfony/scheduler" />
+      <path value="$PROJECT_DIR$/vendor/gedmo/doctrine-extensions" />
+      <path value="$PROJECT_DIR$/vendor/beberlei/doctrineextensions" />
+      <path value="$PROJECT_DIR$/vendor/doctrine/annotations" />
+      <path value="$PROJECT_DIR$/vendor/stof/doctrine-extensions-bundle" />
+      <path value="$PROJECT_DIR$/vendor/scienta/doctrine-json-functions" />
+      <path value="$PROJECT_DIR$/vendor/kubawerlos/php-cs-fixer-custom-fixers" />
+      <path value="$PROJECT_DIR$/vendor/behat/transliterator" />
+      <path value="$PROJECT_DIR$/vendor/symfony/telegram-notifier" />
+      <path value="$PROJECT_DIR$/vendor/friendsofphp/php-cs-fixer" />
+      <path value="$PROJECT_DIR$/vendor/symfony/fake-chat-notifier" />
+      <path value="$PROJECT_DIR$/vendor/symfony/fake-sms-notifier" />
+      <path value="$PROJECT_DIR$/vendor/symfony/orm-pack" />
+      <path value="$PROJECT_DIR$/vendor/x-one/notifier-bundle" />
+      <path value="$PROJECT_DIR$/vendor/symfony/webpack-encore-bundle" />
+      <path value="$PROJECT_DIR$/vendor/symfony/stimulus-bundle" />
+      <path value="$PROJECT_DIR$/vendor/twig/intl-extra" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.1" />

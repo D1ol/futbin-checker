@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace vendor;
+namespace App\Controller;
 
 use App\Entity\Player\Player;
 use App\Messenger\Player\CheckPlayerMessage;
@@ -13,17 +13,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Notifier\Bridge\Telegram\TelegramOptions;
 use Symfony\Component\Notifier\ChatterInterface;
-use Symfony\Component\Notifier\Message\ChatMessage;
-use Symfony\Component\Notifier\Notification\Notification;
-use Symfony\Component\Notifier\Notifier;
 use Symfony\Component\Notifier\NotifierInterface;
-use Symfony\Component\Notifier\Recipient\NoRecipient;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
-use XOne\Bundle\NotifierBundle\Notification\PersistentMessageNotification;
 use XOne\Bundle\NotifierBundle\Sender\MessageSenderInterface;
 
 class TestController extends AbstractController
